@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo Grand-Js</title>
+    <script type="text/javascript" src="jquery-2.1.4.js"></script>
+    <script type="text/javascript" src="../grand.js"></script>
+    <script type="text/javascript">
+        app.createModule('collapse', 'module.base', [], {
+            name: 'collapse',
+            isOpen: false,
+            _construct: function () {
+                //дополнительная инициализация
+                this.$cont = $('.collapse_cont', this.$el);
+            },
+            events: {
+                'click .collapse_btn': 'onClick'
+            },
+            onClick: function (e) {
+                e.preventDefault();
+                if(this.isOpen){
+                    this.$cont.hide();
+                }else{
+                    this.$cont.show();
+                }
+                this.isOpen = !this.isOpen;
+            }
+        });
+    </script>
+</head>
+<body>
+<div class="js" data-module="collapse">
+    <span class="collapse_btn">Collapse</span>
+
+    <div class="collapse_cont" style="display: none">
+        Collapsed
+    </div>
+</div>
+</body>
+</html>
