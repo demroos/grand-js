@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Demo Grand-Js</title>
+    <link rel="stylesheet" href="style.css"/>
     <script type="text/javascript" src="jquery-2.1.4.js"></script>
     <script type="text/javascript" src="../grand.js"></script>
     <script type="text/javascript">
@@ -17,23 +18,109 @@
             },
             onClick: function (e) {
                 e.preventDefault();
-                if(this.isOpen){
+                if (this.isOpen) {
                     this.$cont.hide();
-                }else{
+                } else {
                     this.$cont.show();
                 }
                 this.isOpen = !this.isOpen;
+            }
+        });
+
+        app.createModule('collapse2', 'collapse', [], {
+            name: 'collapse2',
+            events: {
+                'click .collapse_btn': 'onClickLog'
+            },
+            onClickLog: function (e) {
+                console.log(this.name + ' clicked');
+                this.onClick(e);
+            }
+        });
+
+        app.createModule('ajax', 'module.base', ['event'], {
+            name: 'ajax',
+            events: {
+                'click': 'onClick'
+            },
+            onClick: function (e) {
+                this.trigger('beforeLoad');
+                app.ajax({
+                    url: 'ajax.html'
+                }).done($.proxy(this.done, this)).fail($.proxy(this.fail, this));
+            },
+            done: function (data) {
+                this.trigger('beforeInsert', data);
+                this.$el.after(data);
+                this.trigger('afterLoad', data);
+            },
+            fail: function (e) {
+                app.logger.error(e)
+            }
+        });
+
+        app.createModule('ajax2', 'ajax', ['event'], {
+            name: 'ajax2',
+            _construct: function () {
+                this.on('beforeInsert', function ($data) {
+                    console.log('Open collapse');
+                    $data.find('a').trigger('click');
+                })
+            }
+        });
+
+        app.createModule('bem', 'module.base', ['bem'], {
+            name: 'bem',
+            class: 'b-link',
+            clicked: false,
+            events: {
+                'click': 'onClick'
+            },
+            onClick: function (e) {
+                e.preventDefault();
+                if(this.clicked){
+                    this.delMod('click', 'yes');
+                }else{
+                    this.addMod('click', 'yes');
+                }
+                this.clicked = !this.clicked;
             }
         });
     </script>
 </head>
 <body>
 <div class="js" data-module="collapse">
-    <span class="collapse_btn">Collapse</span>
+    <a href="#" class="collapse_btn">Collapse</a>
 
     <div class="collapse_cont" style="display: none">
         Collapsed
     </div>
+</div>
+<br/>
+<br/>
+
+<div class="js" data-module="collapse2">
+    <a href="#" class="collapse_btn">Collapse2</a>
+
+    <div class="collapse_cont" style="display: none">
+        Collapsed
+    </div>
+</div>
+<br/>
+<br/>
+
+<div>
+    <a class="js" data-module="ajax" href="#">Load</a>
+</div>
+<br/>
+<br/>
+<div>
+    <a class="js" data-module="ajax2" href="#">Load 2</a>
+</div>
+<br/>
+<br/>
+<div>
+    <a class="js b-link" data-module="bem" href="#">BEM addMod</a>
 </div>
 </body>
 </html>

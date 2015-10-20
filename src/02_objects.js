@@ -92,44 +92,11 @@
 
     app.base_objects = base_object;
 
-    //base module
-    function Base_module($el, config) {
-        this.events = {};
-    }
-
-    Base_module.prototype.addEvent = function (name, func) {
-        if (typeof this.events == 'undefined') {
-            this.events = {};
-        }
-        if (typeof this.events[name] != 'undefined') {
-            var event = this.events[name];
-            if (typeof event.funcs == 'undefined') {
-                event.funcs = [];
-            }
-            event.funcs.push(func);
-        } else {
-            this.events[name] = {
-                funcs: []
-            };
-            this.events[name].funcs.push(func);
-        }
-    };
-
-    Base_module.prototype.trigger = function (event, data) {
-        if (this.events[event] != undefined) {
-            this.events[event].funcs.forEach(function (func) {
-                var nData = data || {};
-                func(nData);
-            });
-        }
-    };
-
-    app.Base_module = Base_module;
     //MIXINS
     app._mixins = {};
     app._mixins.event = {
 
-        _eventHandlers: {},
+        //_eventHandlers: {},
 
         /**
          * Подписка на событие
@@ -137,6 +104,9 @@
          *  menu.on('select', function(item) { ... }
          */
         on: function (eventName, handler) {
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             if (!this._eventHandlers[eventName]) {
                 this._eventHandlers[eventName] = [];
             }
@@ -148,6 +118,9 @@
          *  menu.off('select',  handler)
          */
         off: function (eventName, handler) {
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             var handlers = this._eventHandlers[eventName];
             if (!handlers) return;
             for (var i = 0; i < handlers.length; i++) {
@@ -162,7 +135,9 @@
          *  this.trigger('select', item);
          */
         trigger: function (eventName /*, ... */) {
-
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             if (!this._eventHandlers[eventName]) {
                 return; // обработчиков для события нет
             }
