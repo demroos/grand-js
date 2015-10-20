@@ -4,7 +4,7 @@
         modules: {},
         waitModules: {},
         objects: {},
-        init_modules: [],
+        init_modules: {},
         modules_count: 0,
         getCookie: function (name) {
             var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
@@ -21,6 +21,9 @@
             var date = new Date(0);
             document.cookie = name + "=; path=/; expires=" + date.toUTCString();
 
+        },
+        genId: function(){
+            return 'id-' + Math.random().toString(36).substr(2, 16);
         },
         /**
          *
@@ -130,6 +133,7 @@
 //                    oModule.addEvent('change', function () {
 //                        console.log('Module ' + module + ' is changed.');
 //                    });
+                    oModule.setId(app.genId());
                     oModule.init();
                     item.$el.data(module, oModule);
                     if (typeof app.init_modules[module] == 'undefined') {
@@ -169,20 +173,21 @@
                 }
             });
         },
-        ajax: function (params, success) {
-            var set = params;
-            set.success = function (data) {
-                var $data = $(data),
-                    $cont = $('<div></div>');
-                $cont.html($data);
-                app.initComponents($cont);
-                app.initModules($cont);
-                var $reshtml = $cont.html();
-                if (success) {
-                    success($data)
-                }
-            };
-            return $.ajax(set);
+        ajax: function (params) {
+            var d = $.Deferred();
+            $.ajax(params)
+                .done(function (data) {
+                    var $data = $(data),
+                        $cont = $('<div></div>');
+                    $cont.html($data);
+                    app.initComponents($cont);
+                    app.initModules($cont);
+                    d.resolve($data);
+                })
+                .error(function (e) {
+                    d.reject(e);
+                });
+            return d.promise();
         },
         createModule: function (name, parent, mixins, object) {
             var module = null;
@@ -203,6 +208,9 @@
         },
         logger: {
             info: function (msg) {
+                console.log(msg);
+            },
+            error: function(msg){
                 console.log(msg);
             }
         }
@@ -307,44 +315,11 @@
 
     app.base_objects = base_object;
 
-    //base module
-    function Base_module($el, config) {
-        this.events = {};
-    }
-
-    Base_module.prototype.addEvent = function (name, func) {
-        if (typeof this.events == 'undefined') {
-            this.events = {};
-        }
-        if (typeof this.events[name] != 'undefined') {
-            var event = this.events[name];
-            if (typeof event.funcs == 'undefined') {
-                event.funcs = [];
-            }
-            event.funcs.push(func);
-        } else {
-            this.events[name] = {
-                funcs: []
-            };
-            this.events[name].funcs.push(func);
-        }
-    };
-
-    Base_module.prototype.trigger = function (event, data) {
-        if (this.events[event] != undefined) {
-            this.events[event].funcs.forEach(function (func) {
-                var nData = data || {};
-                func(nData);
-            });
-        }
-    };
-
-    app.Base_module = Base_module;
     //MIXINS
     app._mixins = {};
     app._mixins.event = {
 
-        _eventHandlers: {},
+        //_eventHandlers: {},
 
         /**
          * Подписка на событие
@@ -352,6 +327,9 @@
          *  menu.on('select', function(item) { ... }
          */
         on: function (eventName, handler) {
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             if (!this._eventHandlers[eventName]) {
                 this._eventHandlers[eventName] = [];
             }
@@ -363,6 +341,9 @@
          *  menu.off('select',  handler)
          */
         off: function (eventName, handler) {
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             var handlers = this._eventHandlers[eventName];
             if (!handlers) return;
             for (var i = 0; i < handlers.length; i++) {
@@ -377,7 +358,9 @@
          *  this.trigger('select', item);
          */
         trigger: function (eventName /*, ... */) {
-
+            if (typeof this._eventHandlers == 'undefined') {
+                this._eventHandlers = {};
+            }
             if (!this._eventHandlers[eventName]) {
                 return; // обработчиков для события нет
             }
@@ -427,6 +410,10 @@
             var event = names[0], selector = names[1];
             $obj.on(event, selector, $.proxy(ctx[callback], ctx));
         }
+        if (names.length == 1) {
+            var selfevent = names[0];
+            $obj.bind(selfevent, $.proxy(ctx[callback], ctx));
+        }
     };
 
     function BaseModule($el) {
@@ -439,7 +426,11 @@
         constructor: BaseModule,
         name: 'Base module',
         initClass: 'module_init',
+        mixins: [],
         events: {},
+        setId: function(id){
+            this._id = id;
+        },
         init: function ($el) {
             this.$el.addClass(this.initClass);
         },

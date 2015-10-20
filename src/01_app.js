@@ -4,7 +4,7 @@
         modules: {},
         waitModules: {},
         objects: {},
-        init_modules: [],
+        init_modules: {},
         modules_count: 0,
         getCookie: function (name) {
             var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
@@ -21,6 +21,9 @@
             var date = new Date(0);
             document.cookie = name + "=; path=/; expires=" + date.toUTCString();
 
+        },
+        genId: function(){
+            return 'id-' + Math.random().toString(36).substr(2, 16);
         },
         /**
          *
@@ -130,6 +133,7 @@
 //                    oModule.addEvent('change', function () {
 //                        console.log('Module ' + module + ' is changed.');
 //                    });
+                    oModule.setId(app.genId());
                     oModule.init();
                     item.$el.data(module, oModule);
                     if (typeof app.init_modules[module] == 'undefined') {
@@ -169,20 +173,21 @@
                 }
             });
         },
-        ajax: function (params, success) {
-            var set = params;
-            set.success = function (data) {
-                var $data = $(data),
-                    $cont = $('<div></div>');
-                $cont.html($data);
-                app.initComponents($cont);
-                app.initModules($cont);
-                var $reshtml = $cont.html();
-                if (success) {
-                    success($data)
-                }
-            };
-            return $.ajax(set);
+        ajax: function (params) {
+            var d = $.Deferred();
+            $.ajax(params)
+                .done(function (data) {
+                    var $data = $(data),
+                        $cont = $('<div></div>');
+                    $cont.html($data);
+                    app.initComponents($cont);
+                    app.initModules($cont);
+                    d.resolve($data);
+                })
+                .error(function (e) {
+                    d.reject(e);
+                });
+            return d.promise();
         },
         createModule: function (name, parent, mixins, object) {
             var module = null;
@@ -203,6 +208,9 @@
         },
         logger: {
             info: function (msg) {
+                console.log(msg);
+            },
+            error: function(msg){
                 console.log(msg);
             }
         }
