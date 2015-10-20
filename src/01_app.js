@@ -169,20 +169,21 @@
                 }
             });
         },
-        ajax: function (params, success) {
-            var set = params;
-            set.success = function (data) {
-                var $data = $(data),
-                    $cont = $('<div></div>');
-                $cont.html($data);
-                app.initComponents($cont);
-                app.initModules($cont);
-                var $reshtml = $cont.html();
-                if (success) {
-                    success($data)
-                }
-            };
-            return $.ajax(set);
+        ajax: function (params) {
+            var d = $.Deferred();
+            $.ajax(params)
+                .done(function (data) {
+                    var $data = $(data),
+                        $cont = $('<div></div>');
+                    $cont.html($data);
+                    app.initComponents($cont);
+                    app.initModules($cont);
+                    d.resolve(data);
+                })
+                .error(function (e) {
+                    d.reject(e);
+                });
+            return d.promise();
         },
         createModule: function (name, parent, mixins, object) {
             var module = null;
