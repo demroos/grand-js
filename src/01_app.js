@@ -58,6 +58,7 @@
                     Inheritance.prototype[k] = Child[k];
                 }
             }
+            Inheritance.prototype.super = Parent.prototype;
             return Inheritance;
         },
         mixin: function (Class, Mixin) {
@@ -97,8 +98,9 @@
             $modules.each(function () {
                 var $this = $(this),
                     module = $this.data('module'),
-                    config = $this.data('config');
-                if (module !== undefined) {
+                    config = $this.data('config'),
+                    notInited = (module !== undefined && $this.data(module) == undefined);
+                if (notInited) {
                     var item = {};
                     item.$el = $this;
                     item.config = config;
