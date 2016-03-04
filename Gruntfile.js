@@ -1,5 +1,7 @@
 // Обязательная обёртка
 module.exports = function (grunt) {
+    var fs = require("fs");
+    var lic = fs.readFileSync('LICENSE').toString();
 
     // Задачи
     grunt.initConfig({
@@ -21,6 +23,18 @@ module.exports = function (grunt) {
                 }
             }
         },
+        usebanner: {
+            build: {
+                options: {
+                    position: "top",
+                    banner: "/*" + lic + "*/",
+                    linebreak: true
+                },
+                files: {
+                    src: ['grand.js', 'grand.min.js']
+                }
+            }
+        },
         watch: {
             core: {
                 files: ['src/**/*.js'],
@@ -33,5 +47,5 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     // Задача по умолчанию
-    grunt.registerTask('default', ['concat', 'uglify']);
+    grunt.registerTask('default', ['concat', 'uglify', 'usebanner']);
 };
