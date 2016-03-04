@@ -9,6 +9,12 @@ Grand-js library
       demo/          примеры использования
       src/           исходники
 
+Установка
+-------------------
+```
+bower install grand-js
+```
+
 Подключение
 -------------------
 
@@ -16,6 +22,9 @@ Grand-js library
 <script type="text/javascript" src="/path/to/jquery.js"></script>
 <script type="text/javascript" src="/path/to/grand.js"></script>
 ```
+
+Пример
+-------------------
 
 ```javascript
 app.createModule('collapse', 'module.base', [], {
