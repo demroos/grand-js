@@ -10,17 +10,38 @@
             var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
             return matches ? decodeURIComponent(matches[1]) : undefined;
         },
-        setCookie: function (name, val, root, time) {
-            var opt = {};
-            opt.root = root || '/';
-            opt.time = time || 60000;
-            var date = new Date(new Date().getTime() + opt.time);
-            document.cookie = name + "=" + val + "; path=" + opt.root + "; expires=180";
+        setCookie: function (name, value, root, time) {
+            var options = {
+                expires: time,
+                path: root
+            };
+            var expires = options.expires;
+
+            if (typeof expires == "number" && expires) {
+                var d = new Date();
+                d.setTime(d.getTime() + expires);
+                expires = options.expires = d;
+            }
+            if (expires && expires.toUTCString) {
+                options.expires = expires.toUTCString();
+            }
+
+            value = encodeURIComponent(value);
+
+            var updatedCookie = name + "=" + value;
+
+            for (var propName in options) {
+                updatedCookie += "; " + propName;
+                var propValue = options[propName];
+                if (propValue !== true) {
+                    updatedCookie += "=" + propValue;
+                }
+            }
+
+            document.cookie = updatedCookie;
         },
         delCookie: function (name) {
-            var date = new Date(0);
-            document.cookie = name + "=; path=/; expires=" + date.toUTCString();
-
+            app.setCookie(name, "", '/', -1);
         },
         genId: function(){
             return 'id-' + Math.random().toString(36).substr(2, 16);

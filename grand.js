@@ -1,23 +1,3 @@
-/*Copyright (c) 2016 Ewgeniy Kiselev <demroos@yandex.ru>
-
- Permission is hereby granted, free of charge, to any person obtaining
- a copy of this software and associated documentation files (the
- "Software"), to deal in the Software without restriction, including
- without limitation the rights to use, copy, modify, merge, publish,
- distribute, sublicense, and/or sell copies of the Software, and to
- permit persons to whom the Software is furnished to do so, subject to
- the following conditions:
-
- The above copyright notice and this permission notice shall be included
- in all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 (function ($, w, d) {
     var $d = $(d);
     var app = {
@@ -30,17 +10,38 @@
             var matches = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"));
             return matches ? decodeURIComponent(matches[1]) : undefined;
         },
-        setCookie: function (name, val, root, time) {
-            var opt = {};
-            opt.root = root || '/';
-            opt.time = time || 60000;
-            var date = new Date(new Date().getTime() + opt.time);
-            document.cookie = name + "=" + val + "; path=" + opt.root + "; expires=180";
+        setCookie: function (name, value, root, time) {
+            var options = {
+                expires: time,
+                path: root
+            };
+            var expires = options.expires;
+
+            if (typeof expires == "number" && expires) {
+                var d = new Date();
+                d.setTime(d.getTime() + expires);
+                expires = options.expires = d;
+            }
+            if (expires && expires.toUTCString) {
+                options.expires = expires.toUTCString();
+            }
+
+            value = encodeURIComponent(value);
+
+            var updatedCookie = name + "=" + value;
+
+            for (var propName in options) {
+                updatedCookie += "; " + propName;
+                var propValue = options[propName];
+                if (propValue !== true) {
+                    updatedCookie += "=" + propValue;
+                }
+            }
+
+            document.cookie = updatedCookie;
         },
         delCookie: function (name) {
-            var date = new Date(0);
-            document.cookie = name + "=; path=/; expires=" + date.toUTCString();
-
+            app.setCookie(name, "", '/', -1);
         },
         genId: function(){
             return 'id-' + Math.random().toString(36).substr(2, 16);

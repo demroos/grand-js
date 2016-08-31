@@ -78,14 +78,16 @@
             },
             onClick: function (e) {
                 e.preventDefault();
-                if(this.clicked){
+                if (this.clicked) {
                     this.delMod('click', 'yes');
-                }else{
+                } else {
                     this.addMod('click', 'yes');
                 }
                 this.clicked = !this.clicked;
             }
         });
+
+        app.setCookie('test', 'lololo', '/', 60 * 15 * 1000);
     </script>
 </head>
 <body>
@@ -114,11 +116,13 @@
 </div>
 <br/>
 <br/>
+
 <div>
     <a class="js" data-module="ajax2" href="#">Load 2</a>
 </div>
 <br/>
 <br/>
+
 <div>
     <a class="js b-link" data-module="bem" href="#">BEM addMod</a>
 </div>
